@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hacker Control Panel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+  /* Grundstil */
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    background: black;
+    color: #0f0;
+    font-family: 'Share Tech Mono', monospace;
+    overflow-x: hidden;
+  }
+
+  /* Matrix-Hintergrund */
+  canvas#matrix {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+
+  /* Container */
+  #container {
+    position: relative;
+    z-index: 10;
+    max-width: 1100px;
+    margin: 2rem auto 3rem auto;
+    background: rgba(0,0,0,0.85);
+    border: 2px solid #0f0;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 0 15px #0f0;
+  }
+
+  h1, h2 {
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
+    user-select: none;
+  }
+  h1 {
+    font-size: 2.8rem;
+    color: #0f0;
+  }
+  h2 {
+    font-size: 1.8rem;
+    color: #f00;
+  }
+
+  /* Terminal */
+  #terminal {
+    background: #000;
+    border: 1px solid #0f0;
+    padding: 1rem;
+    height: 250px;
+    overflow-y: auto;
+    font-size: 1rem;
+    line-height: 1.2rem;
+    box-shadow: inset 0 0 30px #00ff00;
+    user-select: none;
+  }
+  #terminal .line {
+    margin: 0;
+  }
+  .blinking-cursor {
+    display: inline-block;
+    width: 10px;
+    background-color: #0f0;
+    animation: blink 1s step-start 0s infinite;
+    vertical-align: bottom;
+  }
+  @keyframes blink {
+    50% { background-color: transparent; }
+  }
+
+  /* Discord Profil Box */
+  #discord-profile {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: #001100;
+    border: 1px solid #0f0;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #0f0;
+    text-align: center;
+  }
+  #discord-profile iframe {
+    border-radius: 10px;
+    border: none;
+    width: 100%;
+    max-width: 350px;
+    height: 180px;
+    margin: 0 auto;
+  }
+  #discord-profile a {
+    display: inline-block;
+    margin-top: 1rem;
+    color: #0f0;
+    font-weight: bold;
+    text-decoration: none;
+    border: 1px solid #0f0;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: background 0.3s;
+  }
+  #discord-profile a:hover {
+    background: #0f0;
+    color: black;
+  }
+
+  /* Panels: User und Admin */
+  #user-panel, #admin-panel {
+    margin-top: 2rem;
+    background: #001100;
+    border: 1px solid #0f0;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 0 15px #0f0;
+  }
+
+  /* Fake Adressen Liste */
+  #fake-addresses {
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.95rem;
+  }
+  #fake-addresses li {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #0f0;
+    border-radius: 6px;
+    box-shadow: inset 0 0 5px #00ff00aa;
+  }
+
+  /* Button */
+  button {
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid #0f0;
+    color: #0f0;
+    padding: 0.6rem 1.2rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    border-radius: 6px;
+    transition: background 0.3s;
+    user-select: none;
+  }
+  button:hover {
+    background: #0f0;
+    color: black;
+  }
+
+  /* Passwortfeld */
+  #admin-password {
+    width: 100%;
+    max-width: 280px;
+    margin: 0.5rem 0 1rem 0;
+    padding: 0.4rem 0.6rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #0f0;
+    background: black;
+    color: #0f0;
+  }
+
+  /* Admin Panel versteckt */
+  #admin-panel {
+    display: none;
+  }
+
+  /* Responsive */
+  @media(max-width: 600px) {
+    #container {
+      margin: 1rem;
+      padding: 1rem;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<div id="container">
+  <h1>Hacker Control Panel</h1>
+
+  <section id="terminal-section">
+    <h2>Terminal - DDOS Simulation</h2>
+    <div id="terminal"></div>
+  </section>
+
+  <section id="discord-profile">
+    <h2>Mein Discord Profil</h2>
+    <!-- Discord Widget via ID (Widget muss in deinem Discord Server aktiviert sein!) -->
+    <iframe src="https://discord.com/widget?id=1377438352990670940&theme=dark" allowtransparency="true" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+    <br />
+    <a href="https://discord.gg/sepultura" target="_blank" rel="noopener">Zum Discord Server</a>
+  </section>
+
+  <section id="user-panel">
+    <h2>User Panel - Fake Adressen in Europa</h2>
+    <button id="generate-addresses-btn">Generiere Fake-Adressen</button>
+    <ul id="fake-addresses"></ul>
+  </section>
+
+  <section id="admin-login">
+    <h2>Admin Login</h2>
+    <input type="password" id="admin-password" placeholder="Passwort eingeben" autocomplete="off" />
+    <button id="admin-login-btn">Login</button>
+  </section>
+
+  <section id="admin-panel">
+    <h2>Admin Dashboard</h2>
+    <p style="color:#f00; font-weight:bold;">Nur für Admins sichtbar!</p>
+    <p>Angriffe live überwachen:</p>
+    <ul id="ddos-log"></ul>
+  </section>
+</div>
+
+<script>
+  // MATRIX CODE EFFECT
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d');
+  let width, height;
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*+-=<>'.split('');
+  const fontSize = 18;
+  const columns = Math.floor(width / fontSize);
+  const drops = Array(columns).fill(1);
+
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = '#0f0';
+    ctx.font = fontSize + 'px Share Tech Mono';
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = letters[Math.floor(Math.random() * letters.length)];
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+      if (drops[i] * fontSize > height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    }
+  }
+  setInterval(drawMatrix, 50);
+
+  // TERMINAL SIMULATION
+  const terminal = document.getElementById('terminal');
+  const commands = [
+    'Start DDOS Angriff auf target.com ...',
+    'Verbindung zu 192.168.1.1 aufgebaut...',
+    'Anzahl Pakete gesendet: 1000 ...',
+    'Anzahl Pakete gesendet: 5000 ...',
+    'Verbindung zum Ziel gestört.',
+    'Ziel antwortet nicht mehr.',
+    'Verbindung getrennt.',
+    'Starte neuen Angriff auf securebank.eu ...',
+    'Verbindung aufgebaut, Pakete werden gesendet...',
+    'Verbindung stabil, Angriff läuft.'
+  ];
+  let cmdIndex = 0;
+
+  function typeLine(text, cb) {
+    let i = 0;
+    const interval = setInterval(() => {
+      terminal.innerHTML += text.charAt(i);
+      i++;
+      terminal.scrollTop = terminal.scrollHeight;
+      if (i >= text.length) {
+        clearInterval(interval);
+        terminal.innerHTML += '<br>';
+        cb();
+      }
+    }, 40);
+  }
+
+  function runTerminal() {
+    if(cmdIndex < commands.length) {
+      typeLine('> ' + commands[cmdIndex], () => {
+        cmdIndex++;
+        setTimeout(runTerminal, 300);
+      });
+    } else {
+      setTimeout(() => {
+        terminal.innerHTML = '';
+        cmdIndex = 0;
+        runTerminal();
+      }, 5000);
+    }
+  }
+  runTerminal();
+
+  // USER PANEL - Fake Adressen Europa
+  const fakeAddresses = [
+    "Karl-Liebknecht-Straße 12, 10178 Berlin, Deutschland",
+    "Rue de la Paix 5, 75002 Paris, Frankreich",
+    "Via Roma 23, 00184 Rom, Italien",
+    "King's Road 10, London SW3, Vereinigtes Königreich",
+    "Avenida de América 42, 28002 Madrid, Spanien",
+    "Prinsengracht 267, 1016 GV Amsterdam, Niederlande",
+    "Sørkedalsveien 8, 0372 Oslo, Norwegen",
+    "Laugavegur 50, 101 Reykjavík, Island",
+    "Storgata 15, 0161 Oslo, Norwegen",
+    "Frederiksberggade 14, 1459 Kopenhagen, Dänemark"
+  ];
+
+  const fakeList = document.getElementById('fake-addresses');
+  const generateBtn = document.getElementById('generate-addresses-btn');
+
+  function generateFakeAddresses() {
+    fakeList.innerHTML = '';
+    for(let i=0; i<5; i++) {
+      const idx = Math.floor(Math.random() * fakeAddresses.length);
+      const li = document.createElement('li');
+      li.textContent = fakeAddresses[idx];
+      fakeList.appendChild(li);
+    }
+  }
+  generateBtn.addEventListener('click', generateFakeAddresses);
+
+  // ADMIN LOGIN
+  const adminPasswordInput = document.getElementById('admin-password');
+  const adminLoginBtn = document.getElementById('admin-login-btn');
+  const adminPanel = document.getElementById('admin-panel');
+  const ddosLog = document.getElementById('ddos-log');
+
+  const ADMIN_PASSWORD = 'geheim123';  // <-- Passwort zum Adminbereich (kannst du ändern)
+
+  adminLoginBtn.addEventListener('click', () => {
+    const entered = adminPasswordInput.value;
+    if(entered === ADMIN_PASSWORD) {
+      adminPanel.style.display = 'block';
+      document.getElementById('admin-login').style.display = 'none';
+      startDdosLog();
+    } else {
+      alert('Falsches Passwort!');
+    }
+  });
+
+  // Fake DDOS Log für Admin Panel
+  const ddosTargets = ['banksecure.de', 'gamingserver.eu', 'shoponline.com', 'vpnprovider.net', 'socialmedia.eu'];
+  let ddosCount = 0;
+  function startDdosLog() {
+    ddosLog.innerHTML = '';
+    setInterval(() => {
+      ddosCount++;
+      const li = document.createElement('li');
+      li.textContent = `Angriff #${ddosCount} gestartet auf ${ddosTargets[Math.floor(Math.random() * ddosTargets.length)]}`;
+      ddosLog.prepend(li);
+      if(ddosLog.children.length > 15) {
+        ddosLog.removeChild(ddosLog.lastChild);
+      }
+    }, 3500);
+  }
+</script>
+
+</body>
+</html>
